@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>黑马点评 · Java 知识助手</title>
+<link rel="stylesheet" href="ai.css">
+</head>
+<body>
+<div class="page">
+    <header class="topbar">
+        <div class="brand">
+            <h1>黑马点评 · Java 知识助手</h1>
+            <p class="subtitle">知识库问答，回答附来源；默认使用本地词项哈希检索，属于字面匹配，不是语义向量。</p>
+        </div>
+        <div class="status" id="statusBar" aria-live="polite">
+            <span class="chip" id="chipMode">检索方式：加载中</span>
+            <span class="chip" id="chipChunks">片段：-</span>
+            <span class="chip" id="chipModel">生成模型：-</span>
+            <button type="button" class="link-btn" id="tokenBtn">更换令牌</button>
+        </div>
+    </header>
+
+    <main class="layout">
+        <section class="panel chat" aria-label="对话区">
+            <div class="messages" id="messages">
+                <div class="empty" id="emptyHint">
+                    <p>可以这样提问：「HashMap 的扩容和红黑树转换条件是什么？」</p>
+                    <p>回答只依据左侧知识库中的资料，并在句末标注引用编号。</p>
+                </div>
+            </div>
+            <div class="composer">
+                <textarea id="question" maxlength="4000" rows="3"
+                          placeholder="输入问题，Enter 发送，Shift+Enter 换行（最多 4000 字）"></textarea>
+                <div class="composer-row">
+                    <label class="switch">
+                        <input type="checkbox" id="retrievalOnly">
+                        <span>仅检索原文</span>
+                    </label>
+                    <span class="counter" id="questionCounter">0 / 4000</span>
+                    <span class="spacer"></span>
+                    <button type="button" id="stopBtn" disabled>停止</button>
+                    <button type="button" id="sendBtn" class="primary">发送</button>
+                </div>
+                <p class="inline-error" id="chatError" hidden></p>
+            </div>
+        </section>
+
+        <aside class="panel knowledge" aria-label="资料库">
+            <div class="panel-head">
+                <h2>资料库</h2>
+                <button type="button" id="refreshBtn" class="link-btn">刷新</button>
+            </div>
+            <div class="doc-list" id="docList">
+                <p class="muted">加载中…</p>
+            </div>
+            <p class="inline-error" id="docError" hidden></p>
+            <details class="add-doc">
+                <summary>新增资料</summary>
+                <form id="addForm" novalidate>
+                    <label>标题
+                        <input type="text" id="docTitle" maxlength="100" placeholder="例如：HashMap 常见面试题">
+                    </label>
+                    <label>正文（最多 20000 字）
+                        <textarea id="docContent" rows="7" maxlength="20000"
+                                  placeholder="粘贴纯文本或 Markdown 内容，系统会按 800 字切分并建立词项哈希索引。"></textarea>
+                    </label>
+                    <div class="composer-row">
+                        <span class="counter" id="docCounter">0 / 20000</span>
+                        <span class="spacer"></span>
+                        <button type="submit" class="primary" id="addBtn">导入</button>
+                    </div>
+                    <p class="inline-error" id="addError" hidden></p>
+                </form>
+            </details>
+        </aside>
+    </main>
+</div>
+
+<div class="modal" id="tokenModal" role="dialog" aria-modal="true" aria-labelledby="tokenTitle" hidden>
+    <div class="modal-card">
+        <h2 id="tokenTitle">访问令牌</h2>
+        <p class="muted">在服务端设置环境变量 AI_ACCESS_TOKEN 后，用同一个值连接。令牌只保存在当前页面内存中，刷新页面需要重新输入。</p>
+        <form id="tokenForm" novalidate>
+            <input type="password" id="tokenInput" autocomplete="off" placeholder="请输入访问令牌" aria-label="访问令牌">
+            <p class="inline-error" id="tokenError" hidden></p>
+            <button type="submit" class="primary" id="tokenSubmit">连接</button>
+        </form>
+    </div>
+</div>
+
+<script src="ai.js"></script>
+</body>
+</html>
