@@ -1,8 +1,10 @@
 package com.hmdp.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.dto.LoginFormDTO;
 import com.hmdp.dto.Result;
@@ -11,6 +13,7 @@ import com.hmdp.entity.User;
 import com.hmdp.mapper.UserMapper;
 import com.hmdp.service.IUserService;
 import com.hmdp.utils.RegexUtils;
+import com.hmdp.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -19,6 +22,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -69,7 +73,9 @@ private StringRedisTemplate stringRedisTemplate;
         String token = UUID.randomUUID().toString(true);
         UserDTO userDTO = new UserDTO();
         BeanUtils.copyProperties(user, userDTO);
-        Map<String, Object> userMap= BeanUtil.beanToMap(userDTO);
+        Map<String, Object> userMap = BeanUtil.beanToMap(userDTO, new HashMap<>(),
+                CopyOptions.create().setIgnoreNullValue(true)
+                        .setFieldValueEditor((fieldName, value) -> value == null ? null : value.toString()));
         String tokenkey = LOGIN_USER_KEY+token;
         //存储
         stringRedisTemplate.opsForHash().putAll(tokenkey,userMap);
@@ -77,6 +83,19 @@ private StringRedisTemplate stringRedisTemplate;
         stringRedisTemplate.expire(tokenkey,LOGIN_USER_TTL, TimeUnit.MINUTES);
         return Result.ok(token);
     }
+
+    @Override
+    public Result logout(String token) {
+        try {
+            if (StrUtil.isNotBlank(token)) {
+                stringRedisTemplate.delete(LOGIN_USER_KEY + token);
+            }
+            return Result.ok();
+        } finally {
+            UserHolder.removeUser();
+        }
+    }
+
     private User createByPhone(String phone){
         User user = new User();
         user.setPhone(phone);
